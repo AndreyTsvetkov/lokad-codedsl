@@ -19,7 +19,7 @@ namespace Lokad.CodeDsl
 {
     class Program
     {
-        public const string FileNamePattern = "*.ddd";
+		public static readonly string[] FileNamePatterns = new[] { "*.ddd" , "*.event", "*.command" };
         static readonly Mutex AppLock = new Mutex(true, "2DB34E68-F80D-4ED0-975A-409C2CDAF241");
 
         static readonly ConcurrentDictionary<string, string> States = new ConcurrentDictionary<string, string>();
@@ -50,14 +50,15 @@ namespace Lokad.CodeDsl
 
             var path = FigureOutLookupPath(args);
             var info = new DirectoryInfo(path);
-            TrayIcon.ShowBalloonTip(5000, "Dsl started", tipText, ToolTipIcon.Info);
-            
-            var files = info.GetFiles(FileNamePattern, SearchOption.AllDirectories);
+	        var tipText = "Looking at " + path;
+	        TrayIcon.ShowBalloonTip(5000, "Dsl started", tipText, ToolTipIcon.Info);
+
+			var files = FileNamePatterns.SelectMany(_ => info.GetFiles(_, SearchOption.AllDirectories)).ToArray();
 
             var notifiers = files
                 .Select(f => f.DirectoryName)
                 .Distinct()
-                .Select(d => new FileSystemWatcher(d, FileNamePattern))
+				.SelectMany(d => FileNamePatterns.Select(_ => new FileSystemWatcher(d, _)))
                 .ToArray();
 
             foreach (var notifier in notifiers)
@@ -208,10 +209,12 @@ namespace Lokad.CodeDsl
                     GenerateInterfaceForEntityWithModifiers = "?",
                     TemplateForInterfaceName = "public interface I{0}Aggregate",
                     TemplateForInterfaceMember = "void When({0} c);",
-                    ClassNameTemplate = @"[DataContract(Namespace = {1})]
-public partial class {0}",
-                    MemberTemplate = "[DataMember(Order = {0})] public {1} {2} {{ get; private set; }}",
-                    
+//					ClassNameTemplate = @"[DataContract(Namespace = {1})]
+//public partial class {0}",
+//					MemberTemplate = "[DataMember(Order = {0})] public {1} {2} {{ get; private set; }}",
+					ClassNameTemplate = @"public partial class {0}",
+					MemberTemplate = "public {1} {2} {{ get; private set; }}",
+
                 };
 
   

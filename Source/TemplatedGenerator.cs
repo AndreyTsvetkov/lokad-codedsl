@@ -34,6 +34,7 @@ public sealed class {0}";
         {
             var writer = new CodeWriter(outer);
 
+			writer.WriteLine("// ReSharper disable RedundantUsingDirective");
             
             foreach (var source in context.Using.Distinct().OrderBy(s => s))
             {
@@ -120,7 +121,7 @@ public sealed class {0}";
             var arrays = contract.Members.Where(p => p.Type.EndsWith("[]")).ToArray();
             if (!arrays.Any())
             {
-                writer.WriteLine(@"{0} () {{}}", contract.Name);
+                writer.WriteLine(@"private {0} () {{}}", contract.Name);
             }
             else
             {
